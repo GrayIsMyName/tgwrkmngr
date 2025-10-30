@@ -1,6 +1,7 @@
 .dropdown-menu-container {
   position: relative;
   display: inline-block;
+  margin-left: auto;
 }
 
 .dropdown-trigger {
@@ -26,6 +27,7 @@
 .dropdown-menu {
   position: absolute;
   top: 100%;
+  left: auto;
   right: 0;
   margin-top: 4px;
   background: var(--tg-theme-bg-color, #fff);
@@ -33,6 +35,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   min-width: 220px;
+  max-width: calc(100vw - 16px);
   z-index: 1000;
   animation: dropdownSlideIn 0.2s ease-out;
   overflow: hidden;

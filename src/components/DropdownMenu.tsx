@@ -52,7 +52,7 @@ export default function DropdownMenu({
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Меню действий"
       >
-        ⋮
+        ☰
       </button>
 
       {isOpen && (
