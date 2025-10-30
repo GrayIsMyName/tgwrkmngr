@@ -97,6 +97,10 @@
 .user-details {
   font-size: 14px;
   color: var(--tg-theme-hint-color, #666);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .request-reason {
@@ -150,6 +154,16 @@
   color: #991b1b;
 }
 
+.badge-admin {
+  background-color: #ddd6fe;
+  color: #6d28d9;
+}
+
+.badge-user {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
 .btn-sm {
   padding: 6px 12px;
   font-size: 14px;
@@ -187,6 +201,15 @@
 }
 
 .btn-danger:active {
+  opacity: 0.8;
+}
+
+.btn-admin {
+  background-color: #7c3aed;
+  color: white;
+}
+
+.btn-admin:active {
   opacity: 0.8;
 }
 

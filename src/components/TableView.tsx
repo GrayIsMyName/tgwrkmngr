@@ -1,4 +1,5 @@
 import type { TableRow } from '../types';
+import DropdownMenu from './DropdownMenu';
 import './TableView.css';
 
 interface TableViewProps {
@@ -32,43 +33,21 @@ export default function TableView({
     <div className="table-view">
       <div className="header">
         <h1>Управление данными</h1>
-        <div className="header-actions">
-          {isAdmin ? (
-            <button className="btn btn-logout" onClick={onLogoutAdmin}>
-              Выйти из админки
-            </button>
-          ) : (
-            <>
-              {onLogoutUser && (
-                <button className="btn btn-logout" onClick={onLogoutUser}>
-                  Выйти
-                </button>
-              )}
-              <button className="btn btn-admin" onClick={onBecomeAdmin}>
-                Стать администратором
-              </button>
-            </>
-          )}
-        </div>
+        <DropdownMenu
+          isAdmin={isAdmin}
+          onLogoutAdmin={onLogoutAdmin}
+          onLogoutUser={onLogoutUser}
+          onBecomeAdmin={onBecomeAdmin}
+          onUserManagement={onUserManagement}
+          onClearAll={onClearAll}
+          pendingRequestsCount={pendingRequestsCount}
+        />
       </div>
 
       <div className="controls">
         <button className="btn btn-primary" onClick={onAdd}>
           + Добавить
         </button>
-        {isAdmin && (
-          <>
-            <button className="btn btn-secondary" onClick={onUserManagement}>
-              👥 Управление пользователями
-              {pendingRequestsCount > 0 && (
-                <span className="badge-requests">{pendingRequestsCount}</span>
-              )}
-            </button>
-            <button className="btn btn-danger" onClick={onClearAll}>
-              Очистить таблицу
-            </button>
-          </>
-        )}
       </div>
 
       {rows.length === 0 ? (

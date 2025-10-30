@@ -279,3 +279,37 @@ export const migrateToNewSystem = async (): Promise<void> => {
   
   await setStorageItem('migration_done_v2', 'true');
 };
+
+// User with role information
+export interface UserWithRole extends User {
+  role: 'user' | 'admin';
+}
+
+// Get all users with their roles
+export const getUsersWithRoles = async (): Promise<UserWithRole[]> => {
+  const users = await getAllUsers();
+  const usersWithRoles: UserWithRole[] = [];
+  
+  for (const user of users) {
+    const role = await getUserRole(user.id);
+    usersWithRoles.push({ ...user, role });
+  }
+  
+  return usersWithRoles;
+};
+
+// Promote user to admin
+export const promoteToAdmin = async (userId: number): Promise<boolean> => {
+  try {
+    // Set admin role
+    await setUserRole(userId, 'admin');
+    
+    // Ensure user has access status
+    await setUserStatus(userId, 'has_access');
+    
+    return true;
+  } catch (error) {
+    console.error('Error promoting user to admin:', error);
+    return false;
+  }
+};

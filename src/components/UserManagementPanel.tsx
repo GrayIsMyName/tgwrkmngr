@@ -1,21 +1,26 @@
+import type { UserWithRole } from '../services/storage';
 import type { User } from '../types';
 import './UserManagementPanel.css';
 
 interface UserManagementPanelProps {
-  users: User[];
+  users: UserWithRole[];
   pendingRequests: User[];
+  currentUserId: number;
   onGrantAccess: (userId: number) => void;
   onBlockUser: (userId: number) => void;
   onUnblockUser: (userId: number) => void;
+  onPromoteToAdmin?: (userId: number) => void;
   onBack: () => void;
 }
 
 export default function UserManagementPanel({
   users,
   pendingRequests,
+  currentUserId,
   onGrantAccess,
   onBlockUser,
   onUnblockUser,
+  onPromoteToAdmin,
   onBack,
 }: UserManagementPanelProps) {
   const getStatusBadge = (status: User['status']) => {
@@ -27,6 +32,13 @@ export default function UserManagementPanel({
       case 'blocked':
         return <span className="badge badge-danger">🚫 Заблокирован</span>;
     }
+  };
+
+  const getRoleBadge = (role: 'user' | 'admin') => {
+    if (role === 'admin') {
+      return <span className="badge badge-admin">👑 Админ</span>;
+    }
+    return <span className="badge badge-user">👤 Пользователь</span>;
   };
 
   const getUserDisplayName = (user: User) => {
@@ -102,7 +114,10 @@ export default function UserManagementPanel({
               >
                 <div className="user-info">
                   <div className="user-name">{getUserDisplayName(user)}</div>
-                  <div className="user-details">ID: {user.id}</div>
+                  <div className="user-details">
+                    ID: {user.id}
+                    {getRoleBadge(user.role)}
+                  </div>
                 </div>
                 <div className="user-actions">
                   {getStatusBadge(user.status)}
@@ -123,13 +138,23 @@ export default function UserManagementPanel({
                         Снять блок
                       </button>
                     )}
-                    {user.status === 'has_access' && (
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => onBlockUser(user.id)}
-                      >
-                        Заблокировать
-                      </button>
+                    {user.status === 'has_access' && user.id !== currentUserId && (
+                      <>
+                        {user.role === 'user' && onPromoteToAdmin && (
+                          <button
+                            className="btn btn-sm btn-admin"
+                            onClick={() => onPromoteToAdmin(user.id)}
+                          >
+                            Сделать администратором
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => onBlockUser(user.id)}
+                        >
+                          Заблокировать
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

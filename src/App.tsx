@@ -7,11 +7,13 @@ import {
   setUserRole as setUserRoleStorage,
   removeUserRole,
   getAllUsers,
+  getUsersWithRoles,
   getOrCreateUser,
   setUserStatus,
   requestAccess,
   getPendingRequests,
   migrateToNewSystem,
+  promoteToAdmin,
 } from './services/storage';
 import { getTelegramUser, initTelegramWebApp } from './services/telegram';
 import type { TableRow, UserRole } from './types';
@@ -68,7 +70,7 @@ function App() {
       
       // Load users and pending requests
       const [users, pending] = await Promise.all([
-        getAllUsers(),
+        getUsersWithRoles(),
         getPendingRequests(),
       ]);
       setAllUsers(users);
@@ -79,6 +81,29 @@ function App() {
     
     initApp();
   }, []);
+
+  // Poll for role changes every 5 seconds
+  useEffect(() => {
+    if (!currentUserId || isLoading) return;
+
+    const interval = setInterval(async () => {
+      const currentRole = await getUserRole(currentUserId);
+      if (currentRole !== userRole) {
+        setUserRole(currentRole);
+        if (currentRole === 'admin') {
+          setUserStatusState('has_access');
+          // Show notification
+          // @ts-ignore
+          if (window.Telegram?.WebApp?.HapticFeedback) {
+            // @ts-ignore
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+          }
+        }
+      }
+    }, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(interval);
+  }, [currentUserId, userRole, isLoading]);
 
   // Check access permissions
   const hasAccess = userRole === 'admin' || userStatus === 'has_access';
@@ -163,7 +188,7 @@ function App() {
 
   const handleGrantAccess = async (userId: number) => {
     await setUserStatus(userId, 'has_access');
-    const users = await getAllUsers();
+    const users = await getUsersWithRoles();
     setAllUsers(users);
     const pending = await getPendingRequests();
     setPendingRequestsCount(pending.length);
@@ -171,13 +196,19 @@ function App() {
 
   const handleBlockUser = async (userId: number) => {
     await setUserStatus(userId, 'blocked');
-    const users = await getAllUsers();
+    const users = await getUsersWithRoles();
     setAllUsers(users);
   };
 
   const handleUnblockUser = async (userId: number) => {
     await setUserStatus(userId, 'no_access');
-    const users = await getAllUsers();
+    const users = await getUsersWithRoles();
+    setAllUsers(users);
+  };
+
+  const handlePromoteToAdmin = async (userId: number) => {
+    await promoteToAdmin(userId);
+    const users = await getUsersWithRoles();
     setAllUsers(users);
   };
 
@@ -281,9 +312,11 @@ function App() {
       <UserManagementPanel
         users={allUsers}
         pendingRequests={allUsers.filter(u => u.status === 'no_access' && u.requestedAt)}
+        currentUserId={currentUserId}
         onGrantAccess={handleGrantAccess}
         onBlockUser={handleBlockUser}
         onUnblockUser={handleUnblockUser}
+        onPromoteToAdmin={handlePromoteToAdmin}
         onBack={handleBackFromUserManagement}
       />
     );

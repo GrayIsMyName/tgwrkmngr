@@ -1,0 +1,106 @@
+.dropdown-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-trigger {
+  background: none;
+  border: none;
+  color: var(--tg-theme-text-color, #000);
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-trigger:hover {
+  background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+}
+
+.dropdown-trigger:active {
+  opacity: 0.7;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--tg-theme-bg-color, #fff);
+  border: 1px solid var(--tg-theme-hint-color, #d0d0d0);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 220px;
+  z-index: 1000;
+  animation: dropdownSlideIn 0.2s ease-out;
+  overflow: hidden;
+}
+
+@keyframes dropdownSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--tg-theme-text-color, #000);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dropdown-item:not(:last-child) {
+  border-bottom: 1px solid var(--tg-theme-hint-color, #d0d0d0);
+}
+
+.dropdown-item:hover {
+  background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+}
+
+.dropdown-item:active {
+  opacity: 0.7;
+}
+
+.dropdown-item-danger {
+  color: #ff4444;
+}
+
+.dropdown-badge {
+  background-color: var(--tg-theme-button-color, #3390ec);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Dark theme adjustments */
+[data-theme='dark'] .dropdown-menu,
+[data-color-scheme='dark'] .dropdown-menu {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .dropdown-item,
+[data-color-scheme='dark'] .dropdown-item {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
