@@ -1,93 +1,20 @@
+import * as api from './api.js';
 import type { TableRow, User } from '../types';
 
-const TABLE_DATA_KEY = 'tableData';
-const ADMIN_PASSWORD_KEY = 'adminPassword';
-const USERS_KEY = 'users';
-const USER_ROLE_PREFIX = 'user_';
-
-// Async storage helper functions
-const getStorageItem = (key: string): Promise<string | null> => {
-  return new Promise((resolve) => {
-    // @ts-ignore - Telegram Web App API
-    if (window.Telegram?.WebApp?.CloudStorage) {
-      // @ts-ignore
-      window.Telegram.WebApp.CloudStorage.getItem(key, (error: string | null, value: string | null) => {
-        if (error) {
-          console.error(`Error getting ${key}:`, error);
-          resolve(null);
-        } else {
-          resolve(value || null);
-        }
-      });
-    } else {
-      // Fallback to localStorage
-      resolve(localStorage.getItem(key));
-    }
-  });
-};
-
-const setStorageItem = (key: string, value: string): Promise<boolean> => {
-  return new Promise((resolve) => {
-    // @ts-ignore - Telegram Web App API
-    if (window.Telegram?.WebApp?.CloudStorage) {
-      // @ts-ignore
-      window.Telegram.WebApp.CloudStorage.setItem(key, value, (error: string | null) => {
-        if (error) {
-          console.error(`Error setting ${key}:`, error);
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
-    } else {
-      // Fallback to localStorage
-      localStorage.setItem(key, value);
-      resolve(true);
-    }
-  });
-};
-
-const removeStorageItem = (key: string): Promise<boolean> => {
-  return new Promise((resolve) => {
-    // @ts-ignore - Telegram Web App API
-    if (window.Telegram?.WebApp?.CloudStorage) {
-      // @ts-ignore
-      window.Telegram.WebApp.CloudStorage.removeItem(key, (error: string | null) => {
-        if (error) {
-          console.error(`Error removing ${key}:`, error);
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
-    } else {
-      localStorage.removeItem(key);
-      resolve(true);
-    }
-  });
-};
-
-// Initialize admin password if not exists
+// Initialize admin password if not exists (no-op for API)
 export const initializeAdminPassword = async (): Promise<void> => {
-  const existing = await getStorageItem(ADMIN_PASSWORD_KEY);
-  if (!existing) {
-    // Надежный пароль: X9$kP2mQ@vL8nR4wT
-    await setStorageItem(ADMIN_PASSWORD_KEY, 'X9$kP2mQ@vL8nR4wT');
-  }
+  // API handles admin password, no initialization needed
 };
 
 // Verify admin password
 export const verifyAdminPassword = async (password: string): Promise<boolean> => {
-  const storedPassword = await getStorageItem(ADMIN_PASSWORD_KEY);
-  // Проверяем оба варианта для обратной совместимости
-  return storedPassword === password || password === 'X9$kP2mQ@vL8nR4wT';
+  return api.verifyAdminPassword(password);
 };
 
 // Load table data
 export const loadTableData = async (): Promise<TableRow[]> => {
   try {
-    const data = await getStorageItem(TABLE_DATA_KEY);
-    return data ? JSON.parse(data) : [];
+    return await api.getTableData();
   } catch (error) {
     console.error('Error loading table data:', error);
     return [];
@@ -97,7 +24,10 @@ export const loadTableData = async (): Promise<TableRow[]> => {
 // Save table data
 export const saveTableData = async (rows: TableRow[]): Promise<boolean> => {
   try {
-    await setStorageItem(TABLE_DATA_KEY, JSON.stringify(rows));
+    // Save all rows
+    for (const row of rows) {
+      await api.saveTableRow(row);
+    }
     return true;
   } catch (error) {
     console.error('Error saving table data:', error);
@@ -107,53 +37,62 @@ export const saveTableData = async (rows: TableRow[]): Promise<boolean> => {
 
 // Get user role
 export const getUserRole = async (userId: number): Promise<'user' | 'admin'> => {
-  // Check legacy role storage
-  const legacyRole = await getStorageItem(`${USER_ROLE_PREFIX}${userId}`);
-  if (legacyRole === 'admin') {
-    return 'admin';
+  try {
+    return await api.getUserRole(userId);
+  } catch (error) {
+    console.error('Error getting user role:', error);
+    return 'user';
   }
-  
-  return 'user';
 };
 
 // Set user role
 export const setUserRole = async (userId: number, role: 'user' | 'admin'): Promise<boolean> => {
-  // Save to legacy storage
-  await setStorageItem(`${USER_ROLE_PREFIX}${userId}`, role);
-  
-  // Also ensure user exists and update their status
-  if (role === 'admin') {
-    const users = await getAllUsers();
-    const existingUser = users.find(u => u.id === userId);
-    if (existingUser && existingUser.status !== 'has_access') {
-      existingUser.status = 'has_access';
-      await saveAllUsers(users);
+  try {
+    await api.setUserRole(userId, role);
+    
+    // Also ensure user has access if admin
+    if (role === 'admin') {
+      const user = await getUserById(userId);
+      if (user && user.status !== 'has_access') {
+        await setUserStatus(userId, 'has_access');
+      }
     }
+    
+    return true;
+  } catch (error) {
+    console.error('Error setting user role:', error);
+    return false;
   }
-  
-  return true;
 };
 
 // Remove user role (for logout)
 export const removeUserRole = async (userId: number): Promise<boolean> => {
-  return removeStorageItem(`${USER_ROLE_PREFIX}${userId}`);
+  try {
+    await api.setUserRole(userId, 'user');
+    return true;
+  } catch (error) {
+    console.error('Error removing user role:', error);
+    return false;
+  }
 };
 
 // Get all users
 export const getAllUsers = async (): Promise<User[]> => {
   try {
-    const data = await getStorageItem(USERS_KEY);
-    return data ? JSON.parse(data) : [];
+    return await api.getAllUsers();
   } catch (error) {
     console.error('Error loading users:', error);
     return [];
   }
 };
 
-// Save all users
+// Save all users (not needed with API, but keep for compatibility)
 export const saveAllUsers = async (users: User[]): Promise<boolean> => {
   try {
-    await setStorageItem(USERS_KEY, JSON.stringify(users));
+    // Save each user
+    for (const user of users) {
+      await api.saveUser(user);
+    }
     return true;
   } catch (error) {
     console.error('Error saving users:', error);
@@ -168,67 +107,10 @@ export const getOrCreateUser = async (
   lastName?: string,
   username?: string
 ): Promise<User> => {
-  const users = await getAllUsers();
-  const existingUser = users.find(u => u.id === userId);
+  let user = await api.getUserById(userId);
   
-  if (existingUser) {
-    return existingUser;
-  }
-  
-  const newUser: User = {
-    id: userId,
-    firstName,
-    lastName,
-    username,
-    status: 'no_access',
-  };
-  
-  users.push(newUser);
-  await saveAllUsers(users);
-  return newUser;
-};
-
-// Save user
-export const saveUser = async (user: User): Promise<boolean> => {
-  const users = await getAllUsers();
-  const index = users.findIndex(u => u.id === user.id);
-  
-  if (index >= 0) {
-    users[index] = user;
-  } else {
-    users.push(user);
-  }
-  
-  return saveAllUsers(users);
-};
-
-// Get user status
-export const getUserStatus = async (userId: number): Promise<'no_access' | 'has_access' | 'blocked'> => {
-  const users = await getAllUsers();
-  const user = users.find(u => u.id === userId);
-  return user?.status || 'no_access';
-};
-
-// Set user status
-export const setUserStatus = async (userId: number, status: 'no_access' | 'has_access' | 'blocked'): Promise<boolean> => {
-  const users = await getAllUsers();
-  const user = users.find(u => u.id === userId);
-  
-  if (user) {
-    user.status = status;
-    return saveAllUsers(users);
-  }
-  
-  return false;
-};
-
-// Request access
-export const requestAccess = async (userId: number, firstName: string, lastName?: string, username?: string, reason?: string): Promise<boolean> => {
-  const users = await getAllUsers();
-  let user = users.find(u => u.id === userId);
-  
-  // Create user if doesn't exist
   if (!user) {
+    // Create new user
     user = {
       id: userId,
       firstName,
@@ -236,56 +118,87 @@ export const requestAccess = async (userId: number, firstName: string, lastName?
       username,
       status: 'no_access',
     };
-    users.push(user);
+    await api.saveUser(user);
   }
   
-  user.requestedAt = new Date().toISOString();
-  user.requestReason = reason;
-  return saveAllUsers(users);
+  return user;
+};
+
+// Save user
+export const saveUser = async (user: User): Promise<boolean> => {
+  try {
+    await api.saveUser(user);
+    return true;
+  } catch (error) {
+    console.error('Error saving user:', error);
+    return false;
+  }
+};
+
+// Get user by ID
+export const getUserById = async (userId: number): Promise<User | null> => {
+  try {
+    return await api.getUserById(userId);
+  } catch (error) {
+    console.error('Error getting user:', error);
+    return null;
+  }
+};
+
+// Get user status
+export const getUserStatus = async (userId: number): Promise<'no_access' | 'has_access' | 'blocked'> => {
+  const user = await getUserById(userId);
+  return user?.status || 'no_access';
+};
+
+// Set user status
+export const setUserStatus = async (userId: number, status: 'no_access' | 'has_access' | 'blocked'): Promise<boolean> => {
+  const user = await getUserById(userId);
+  
+  if (user) {
+    user.status = status;
+    return saveUser(user);
+  }
+  
+  return false;
+};
+
+// Request access
+export const requestAccess = async (userId: number, firstName: string, lastName?: string, username?: string, reason?: string): Promise<boolean> => {
+  try {
+    const user = await getUserById(userId);
+    
+    const updatedUser: User = user || {
+      id: userId,
+      firstName,
+      lastName,
+      username,
+      status: 'no_access',
+    };
+    
+    updatedUser.requestedAt = new Date().toISOString();
+    updatedUser.requestReason = reason;
+    
+    return saveUser(updatedUser);
+  } catch (error) {
+    console.error('Error requesting access:', error);
+    return false;
+  }
 };
 
 // Get pending requests
 export const getPendingRequests = async (): Promise<User[]> => {
-  const users = await getAllUsers();
-  return users.filter(u => u.status === 'no_access' && u.requestedAt);
+  try {
+    return await api.getPendingRequests();
+  } catch (error) {
+    console.error('Error getting pending requests:', error);
+    return [];
+  }
 };
 
-// Migrate old data to new system
+// Migrate old data to new system (no-op for API)
 export const migrateToNewSystem = async (): Promise<void> => {
-  const migrationDone = await getStorageItem('migration_done_v2');
-  if (migrationDone) {
-    return;
-  }
-  
-  const users = await getAllUsers();
-  
-  if (users.length === 0) {
-    await setStorageItem('migration_done_v2', 'true');
-    return;
-  }
-  
-  // Migrate legacy roles
-  const updatedUsers = [...users];
-  let hasChanges = false;
-  
-  for (const user of updatedUsers) {
-    const legacyRole = await getStorageItem(`${USER_ROLE_PREFIX}${user.id}`);
-    if (legacyRole) {
-      if (legacyRole === 'user' && user.status === 'no_access') {
-        user.status = 'has_access';
-        hasChanges = true;
-      } else if (legacyRole === 'admin') {
-        user.status = 'has_access';
-        hasChanges = true;
-      }
-    }
-  }
-  
-  if (hasChanges) {
-    await saveAllUsers(updatedUsers);
-  }
-  
-  await setStorageItem('migration_done_v2', 'true');
+  // No migration needed with API
 };
 
 // User with role information
@@ -295,15 +208,16 @@ export interface UserWithRole extends User {
 
 // Get all users with their roles
 export const getUsersWithRoles = async (): Promise<UserWithRole[]> => {
-  const users = await getAllUsers();
-  const usersWithRoles: UserWithRole[] = [];
-  
-  for (const user of users) {
-    const role = await getUserRole(user.id);
-    usersWithRoles.push({ ...user, role });
+  try {
+    const users = await api.getAllUsers();
+    return users.map(user => ({
+      ...user,
+      role: user.role || 'user'
+    }));
+  } catch (error) {
+    console.error('Error getting users with roles:', error);
+    return [];
   }
-  
-  return usersWithRoles;
 };
 
 // Promote user to admin

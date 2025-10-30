@@ -3,7 +3,6 @@ import {
   initializeAdminPassword,
   loadTableData,
   getUserRole,
-  saveTableData,
   setUserRole as setUserRoleStorage,
   removeUserRole,
   getAllUsers,
@@ -15,6 +14,7 @@ import {
   migrateToNewSystem,
   promoteToAdmin,
 } from './services/storage';
+import * as api from './services/api';
 import { getTelegramUser, initTelegramWebApp } from './services/telegram';
 import type { TableRow, UserRole } from './types';
 import TableView from './components/TableView';
@@ -195,8 +195,8 @@ function App() {
   const handleDelete = (id: string) => {
     setConfirmMessage('Вы уверены, что хотите удалить эту строку?');
     setConfirmCallback(() => async () => {
+      await api.deleteTableRow(id);
       const updated = rows.filter(r => r.id !== id);
-      await saveTableData(updated);
       setRows(updated);
     });
     setShowConfirmDialog(true);
@@ -205,7 +205,7 @@ function App() {
   const handleClearAll = () => {
     setConfirmMessage('Вы уверены, что хотите очистить всю таблицу? Это действие нельзя отменить.');
     setConfirmCallback(() => async () => {
-      await saveTableData([]);
+      await api.clearTable();
       setRows([]);
     });
     setShowConfirmDialog(true);
@@ -260,19 +260,21 @@ function App() {
 
   const handleFormSubmit = async (formData: Omit<TableRow, 'id' | 'createdBy'>) => {
     if (view === 'edit' && editingRow) {
+      const updatedRow = { ...editingRow, ...formData };
+      await api.saveTableRow(updatedRow);
       const updated = rows.map(r => 
-        r.id === editingRow.id ? { ...r, ...formData } : r
+        r.id === editingRow.id ? updatedRow : r
       );
-      await saveTableData(updated);
       setRows(updated);
     } else {
       const newRow: TableRow = {
         id: Date.now().toString(),
         ...formData,
         createdBy: currentUserId,
+        createdAt: new Date().toISOString(),
       };
+      await api.saveTableRow(newRow);
       const updated = [...rows, newRow];
-      await saveTableData(updated);
       setRows(updated);
     }
     setView('table');

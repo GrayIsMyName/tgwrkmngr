@@ -6,6 +6,7 @@ export interface TableRow {
   surname: string;     // Фамилия
   quantity: number;    // Количество (целое число)
   createdBy: number;   // Telegram User ID
+  createdAt?: string;  // ISO timestamp создания строки
 }
 
 export type UserRole = 'user' | 'admin';
@@ -17,6 +18,7 @@ export interface User {
   lastName?: string;
   username?: string;
   status: UserStatus;
+  role?: 'user' | 'admin'; // Role for users with roles
   requestedAt?: string; // ISO timestamp запроса доступа
   requestReason?: string;
 }
