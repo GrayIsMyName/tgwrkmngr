@@ -19,16 +19,6 @@ function parseSheetData(sheetData: string[][]): any[] {
   });
 }
 
-// Convert data to Google Sheets format
-function formatSheetData(data: any[]): string[][] {
-  if (!data || data.length === 0) return [];
-  
-  const headers = Object.keys(data[0]);
-  const rows = data.map(item => headers.map(header => String(item[header] || '')));
-  
-  return [headers, ...rows];
-}
-
 // Table data operations
 export async function getTableData(): Promise<TableRow[]> {
   try {
