@@ -109,6 +109,23 @@ function App() {
   const hasAccess = userRole === 'admin' || userStatus === 'has_access';
   const isBlocked = userStatus === 'blocked';
 
+  // Poll for table data changes every 3 seconds
+  useEffect(() => {
+    if (isLoading || !hasAccess) return;
+
+    const interval = setInterval(async () => {
+      const newData = await loadTableData();
+      // Only update if data actually changed
+      const currentDataStr = JSON.stringify(rows);
+      const newDataStr = JSON.stringify(newData);
+      if (currentDataStr !== newDataStr) {
+        setRows(newData);
+      }
+    }, 3000); // Check every 3 seconds
+    
+    return () => clearInterval(interval);
+  }, [isLoading, hasAccess, rows]);
+
   const handleRequestAccess = () => {
     setShowRequestDialog(true);
   };
