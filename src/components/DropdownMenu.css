@@ -5,23 +5,28 @@
 }
 
 .dropdown-trigger {
-  background: none;
+  background-color: #75d633;
   border: none;
-  color: var(--tg-theme-text-color, #000);
+  color: white;
   font-size: 24px;
   line-height: 1;
-  padding: 4px 8px;
+  padding: 12px 16px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
 }
 
 .dropdown-trigger:hover {
-  background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+  background-color: #60b327;
 }
 
 .dropdown-trigger:active {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .dropdown-menu {
