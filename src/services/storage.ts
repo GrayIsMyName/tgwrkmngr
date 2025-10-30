@@ -223,17 +223,25 @@ export const setUserStatus = async (userId: number, status: 'no_access' | 'has_a
 };
 
 // Request access
-export const requestAccess = async (userId: number, reason?: string): Promise<boolean> => {
+export const requestAccess = async (userId: number, firstName: string, lastName?: string, username?: string, reason?: string): Promise<boolean> => {
   const users = await getAllUsers();
-  const user = users.find(u => u.id === userId);
+  let user = users.find(u => u.id === userId);
   
-  if (user) {
-    user.requestedAt = new Date().toISOString();
-    user.requestReason = reason;
-    return saveAllUsers(users);
+  // Create user if doesn't exist
+  if (!user) {
+    user = {
+      id: userId,
+      firstName,
+      lastName,
+      username,
+      status: 'no_access',
+    };
+    users.push(user);
   }
   
-  return false;
+  user.requestedAt = new Date().toISOString();
+  user.requestReason = reason;
+  return saveAllUsers(users);
 };
 
 // Get pending requests

@@ -146,7 +146,8 @@ function App() {
   };
 
   const handleSendRequest = async (reason?: string) => {
-    await requestAccess(currentUserId, reason);
+    const user = getTelegramUser();
+    await requestAccess(currentUserId, user.first_name, user.last_name, user.username, reason);
     alert('Запрос отправлен. Администратор скоро рассмотрит его.');
     setShowRequestDialog(false);
   };
