@@ -77,17 +77,25 @@ function App() {
   };
 
   const handleAdminSuccess = () => {
+    const user = getTelegramUser();
     setUserRole('admin');
     setUserRoleStorage(currentUserId, 'admin');
     setUserStatusState('has_access');
-    const user = getOrCreateUser(
+    
+    // Update user in the list
+    const updatedUser = getOrCreateUser(
       currentUserId,
-      getTelegramUser().first_name,
-      getTelegramUser().last_name,
-      getTelegramUser().username
+      user.first_name,
+      user.last_name,
+      user.username
     );
-    user.status = 'has_access';
-    setUserStatus(user.id, 'has_access');
+    updatedUser.status = 'has_access';
+    setUserStatus(updatedUser.id, 'has_access');
+    
+    // Force refresh
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   const handleAdd = () => {

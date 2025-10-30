@@ -51,15 +51,38 @@ export const saveTableData = (rows: TableRow[]): void => {
 
 // Get user role
 export const getUserRole = (userId: number): 'user' | 'admin' => {
-  const storage = getStorage();
-  const role = storage.getItem(`${USER_ROLE_PREFIX}${userId}`);
-  return (role === 'admin' || role === 'user') ? role : 'user';
+  const users = getAllUsers();
+  const user = users.find(u => u.id === userId);
+  
+  // Check if user has admin role in User array
+  if (user) {
+    // Check legacy role storage
+    const storage = getStorage();
+    const legacyRole = storage.getItem(`${USER_ROLE_PREFIX}${userId}`);
+    if (legacyRole === 'admin') {
+      return 'admin';
+    }
+  }
+  
+  return 'user';
 };
 
 // Set user role
 export const setUserRole = (userId: number, role: 'user' | 'admin'): void => {
   const storage = getStorage();
+  
+  // Save to legacy storage for compatibility
   storage.setItem(`${USER_ROLE_PREFIX}${userId}`, role);
+  
+  // Also ensure user exists and update their status
+  if (role === 'admin') {
+    const users = getAllUsers();
+    const user = users.find(u => u.id === userId);
+    if (user && user.status !== 'has_access') {
+      user.status = 'has_access';
+      saveAllUsers(users);
+    }
+  }
 };
 
 // Get all users
