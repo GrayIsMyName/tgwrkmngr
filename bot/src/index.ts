@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { initDatabase } from './database.js';
 import { setupRoutes } from './api.js';
 
@@ -6,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.use(cors({ origin: '*'}));
 app.use(express.json());
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
