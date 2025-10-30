@@ -1,0 +1,33 @@
+Настройка Mini App в BotFather
+================================
+
+1. Откройте @BotFather в Telegram
+
+2. Введите команду:
+   /mybots
+
+3. Выберите бота: wrk_mngr_bot
+
+4. Выберите: Bot Settings
+
+5. Выберите: Menu Button
+
+6. Нажмите: "Configure menu button"
+
+7. На вопрос "What text should the button show?" введите:
+   Work Manager
+
+8. На вопрос "What web app URL should the button open?" введите:
+   https://grayismyname.github.io/tgwrkmngr/
+
+9. Готово! ✅
+
+Теперь в вашем боте появится кнопка меню, которая откроет Mini App.
+
+---
+
+Важная информация:
+- Пароль администратора: X9$kP2mQ@vL8nR4wT
+- Все пользователи по умолчанию БЕЗ доступа
+- Вы будете первым, кто войдет и сможет предоставить доступ другим
+

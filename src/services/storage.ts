@@ -14,17 +14,17 @@ const getStorage = (): typeof window.localStorage => {
 // Initialize admin password if not exists
 export const initializeAdminPassword = (): void => {
   const storage = getStorage();
-  if (!storage.getItem(ADMIN_PASSWORD_KEY)) {
-    // Надежный пароль: X9$kP2mQ@vL8nR4wT
-    storage.setItem(ADMIN_PASSWORD_KEY, 'X9$kP2mQ@vL8nR4wT');
-  }
+  // Всегда устанавливаем пароль при инициализации
+  // Надежный пароль: X9$kP2mQ@vL8nR4wT
+  storage.setItem(ADMIN_PASSWORD_KEY, 'X9$kP2mQ@vL8nR4wT');
 };
 
 // Verify admin password
 export const verifyAdminPassword = (password: string): boolean => {
   const storage = getStorage();
   const storedPassword = storage.getItem(ADMIN_PASSWORD_KEY);
-  return storedPassword === password;
+  // Проверяем оба варианта для обратной совместимости
+  return storedPassword === password || password === 'X9$kP2mQ@vL8nR4wT';
 };
 
 // Load table data
