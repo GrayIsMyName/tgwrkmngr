@@ -11,6 +11,12 @@
   margin-bottom: 16px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .header h1 {
   font-size: 24px;
   font-weight: 600;
@@ -51,6 +57,17 @@
 }
 
 .btn-admin:active {
+  opacity: 0.8;
+}
+
+.btn-logout {
+  background-color: var(--tg-theme-hint-color, #999);
+  color: white;
+  font-size: 14px;
+  padding: 8px 16px;
+}
+
+.btn-logout:active {
   opacity: 0.8;
 }
 

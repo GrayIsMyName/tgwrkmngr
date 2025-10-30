@@ -11,7 +11,7 @@ export default function AdminPasswordDialog({ onClose, onSuccess }: AdminPasswor
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -20,7 +20,8 @@ export default function AdminPasswordDialog({ onClose, onSuccess }: AdminPasswor
       return;
     }
 
-    if (verifyAdminPassword(password)) {
+    const isValid = await verifyAdminPassword(password);
+    if (isValid) {
       onSuccess();
       onClose();
     } else {

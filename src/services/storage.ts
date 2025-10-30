@@ -5,33 +5,88 @@ const ADMIN_PASSWORD_KEY = 'adminPassword';
 const USERS_KEY = 'users';
 const USER_ROLE_PREFIX = 'user_';
 
-// Telegram Cloud Storage helpers
-const getStorage = (): typeof window.localStorage => {
-  // @ts-ignore - Telegram Web App API
-  return window.Telegram?.WebApp?.CloudStorage || localStorage;
+// Async storage helper functions
+const getStorageItem = (key: string): Promise<string | null> => {
+  return new Promise((resolve) => {
+    // @ts-ignore - Telegram Web App API
+    if (window.Telegram?.WebApp?.CloudStorage) {
+      // @ts-ignore
+      window.Telegram.WebApp.CloudStorage.getItem(key, (error: string | null, value: string | null) => {
+        if (error) {
+          console.error(`Error getting ${key}:`, error);
+          resolve(null);
+        } else {
+          resolve(value || null);
+        }
+      });
+    } else {
+      // Fallback to localStorage
+      resolve(localStorage.getItem(key));
+    }
+  });
+};
+
+const setStorageItem = (key: string, value: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    // @ts-ignore - Telegram Web App API
+    if (window.Telegram?.WebApp?.CloudStorage) {
+      // @ts-ignore
+      window.Telegram.WebApp.CloudStorage.setItem(key, value, (error: string | null) => {
+        if (error) {
+          console.error(`Error setting ${key}:`, error);
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    } else {
+      // Fallback to localStorage
+      localStorage.setItem(key, value);
+      resolve(true);
+    }
+  });
+};
+
+const removeStorageItem = (key: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    // @ts-ignore - Telegram Web App API
+    if (window.Telegram?.WebApp?.CloudStorage) {
+      // @ts-ignore
+      window.Telegram.WebApp.CloudStorage.removeItem(key, (error: string | null) => {
+        if (error) {
+          console.error(`Error removing ${key}:`, error);
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    } else {
+      localStorage.removeItem(key);
+      resolve(true);
+    }
+  });
 };
 
 // Initialize admin password if not exists
-export const initializeAdminPassword = (): void => {
-  const storage = getStorage();
-  // Всегда устанавливаем пароль при инициализации
-  // Надежный пароль: X9$kP2mQ@vL8nR4wT
-  storage.setItem(ADMIN_PASSWORD_KEY, 'X9$kP2mQ@vL8nR4wT');
+export const initializeAdminPassword = async (): Promise<void> => {
+  const existing = await getStorageItem(ADMIN_PASSWORD_KEY);
+  if (!existing) {
+    // Надежный пароль: X9$kP2mQ@vL8nR4wT
+    await setStorageItem(ADMIN_PASSWORD_KEY, 'X9$kP2mQ@vL8nR4wT');
+  }
 };
 
 // Verify admin password
-export const verifyAdminPassword = (password: string): boolean => {
-  const storage = getStorage();
-  const storedPassword = storage.getItem(ADMIN_PASSWORD_KEY);
+export const verifyAdminPassword = async (password: string): Promise<boolean> => {
+  const storedPassword = await getStorageItem(ADMIN_PASSWORD_KEY);
   // Проверяем оба варианта для обратной совместимости
   return storedPassword === password || password === 'X9$kP2mQ@vL8nR4wT';
 };
 
 // Load table data
-export const loadTableData = (): TableRow[] => {
-  const storage = getStorage();
+export const loadTableData = async (): Promise<TableRow[]> => {
   try {
-    const data = storage.getItem(TABLE_DATA_KEY);
+    const data = await getStorageItem(TABLE_DATA_KEY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('Error loading table data:', error);
@@ -40,56 +95,54 @@ export const loadTableData = (): TableRow[] => {
 };
 
 // Save table data
-export const saveTableData = (rows: TableRow[]): void => {
-  const storage = getStorage();
+export const saveTableData = async (rows: TableRow[]): Promise<boolean> => {
   try {
-    storage.setItem(TABLE_DATA_KEY, JSON.stringify(rows));
+    await setStorageItem(TABLE_DATA_KEY, JSON.stringify(rows));
+    return true;
   } catch (error) {
     console.error('Error saving table data:', error);
+    return false;
   }
 };
 
 // Get user role
-export const getUserRole = (userId: number): 'user' | 'admin' => {
-  const users = getAllUsers();
-  const user = users.find(u => u.id === userId);
-  
-  // Check if user has admin role in User array
-  if (user) {
-    // Check legacy role storage
-    const storage = getStorage();
-    const legacyRole = storage.getItem(`${USER_ROLE_PREFIX}${userId}`);
-    if (legacyRole === 'admin') {
-      return 'admin';
-    }
+export const getUserRole = async (userId: number): Promise<'user' | 'admin'> => {
+  // Check legacy role storage
+  const legacyRole = await getStorageItem(`${USER_ROLE_PREFIX}${userId}`);
+  if (legacyRole === 'admin') {
+    return 'admin';
   }
   
   return 'user';
 };
 
 // Set user role
-export const setUserRole = (userId: number, role: 'user' | 'admin'): void => {
-  const storage = getStorage();
-  
-  // Save to legacy storage for compatibility
-  storage.setItem(`${USER_ROLE_PREFIX}${userId}`, role);
+export const setUserRole = async (userId: number, role: 'user' | 'admin'): Promise<boolean> => {
+  // Save to legacy storage
+  await setStorageItem(`${USER_ROLE_PREFIX}${userId}`, role);
   
   // Also ensure user exists and update their status
   if (role === 'admin') {
-    const users = getAllUsers();
-    const user = users.find(u => u.id === userId);
-    if (user && user.status !== 'has_access') {
-      user.status = 'has_access';
-      saveAllUsers(users);
+    const users = await getAllUsers();
+    const existingUser = users.find(u => u.id === userId);
+    if (existingUser && existingUser.status !== 'has_access') {
+      existingUser.status = 'has_access';
+      await saveAllUsers(users);
     }
   }
+  
+  return true;
+};
+
+// Remove user role (for logout)
+export const removeUserRole = async (userId: number): Promise<boolean> => {
+  return removeStorageItem(`${USER_ROLE_PREFIX}${userId}`);
 };
 
 // Get all users
-export const getAllUsers = (): User[] => {
-  const storage = getStorage();
+export const getAllUsers = async (): Promise<User[]> => {
   try {
-    const data = storage.getItem(USERS_KEY);
+    const data = await getStorageItem(USERS_KEY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
     console.error('Error loading users:', error);
@@ -98,18 +151,24 @@ export const getAllUsers = (): User[] => {
 };
 
 // Save all users
-export const saveAllUsers = (users: User[]): void => {
-  const storage = getStorage();
+export const saveAllUsers = async (users: User[]): Promise<boolean> => {
   try {
-    storage.setItem(USERS_KEY, JSON.stringify(users));
+    await setStorageItem(USERS_KEY, JSON.stringify(users));
+    return true;
   } catch (error) {
     console.error('Error saving users:', error);
+    return false;
   }
 };
 
 // Get or create user
-export const getOrCreateUser = (userId: number, firstName: string, lastName?: string, username?: string): User => {
-  const users = getAllUsers();
+export const getOrCreateUser = async (
+  userId: number,
+  firstName: string,
+  lastName?: string,
+  username?: string
+): Promise<User> => {
+  const users = await getAllUsers();
   const existingUser = users.find(u => u.id === userId);
   
   if (existingUser) {
@@ -125,13 +184,13 @@ export const getOrCreateUser = (userId: number, firstName: string, lastName?: st
   };
   
   users.push(newUser);
-  saveAllUsers(users);
+  await saveAllUsers(users);
   return newUser;
 };
 
 // Save user
-export const saveUser = (user: User): void => {
-  const users = getAllUsers();
+export const saveUser = async (user: User): Promise<boolean> => {
+  const users = await getAllUsers();
   const index = users.findIndex(u => u.id === user.id);
   
   if (index >= 0) {
@@ -140,84 +199,83 @@ export const saveUser = (user: User): void => {
     users.push(user);
   }
   
-  saveAllUsers(users);
+  return saveAllUsers(users);
 };
 
 // Get user status
-export const getUserStatus = (userId: number): 'no_access' | 'has_access' | 'blocked' => {
-  const users = getAllUsers();
+export const getUserStatus = async (userId: number): Promise<'no_access' | 'has_access' | 'blocked'> => {
+  const users = await getAllUsers();
   const user = users.find(u => u.id === userId);
   return user?.status || 'no_access';
 };
 
 // Set user status
-export const setUserStatus = (userId: number, status: 'no_access' | 'has_access' | 'blocked'): void => {
-  const users = getAllUsers();
+export const setUserStatus = async (userId: number, status: 'no_access' | 'has_access' | 'blocked'): Promise<boolean> => {
+  const users = await getAllUsers();
   const user = users.find(u => u.id === userId);
   
   if (user) {
     user.status = status;
-    saveAllUsers(users);
+    return saveAllUsers(users);
   }
+  
+  return false;
 };
 
 // Request access
-export const requestAccess = (userId: number, reason?: string): void => {
-  const users = getAllUsers();
+export const requestAccess = async (userId: number, reason?: string): Promise<boolean> => {
+  const users = await getAllUsers();
   const user = users.find(u => u.id === userId);
   
   if (user) {
     user.requestedAt = new Date().toISOString();
     user.requestReason = reason;
-    saveAllUsers(users);
+    return saveAllUsers(users);
   }
+  
+  return false;
 };
 
 // Get pending requests
-export const getPendingRequests = (): User[] => {
-  const users = getAllUsers();
+export const getPendingRequests = async (): Promise<User[]> => {
+  const users = await getAllUsers();
   return users.filter(u => u.status === 'no_access' && u.requestedAt);
 };
 
 // Migrate old data to new system
-export const migrateToNewSystem = (): void => {
-  const storage = getStorage();
-  
-  // Check if migration already done
-  if (storage.getItem('migration_done_v2')) {
+export const migrateToNewSystem = async (): Promise<void> => {
+  const migrationDone = await getStorageItem('migration_done_v2');
+  if (migrationDone) {
     return;
   }
   
-  // Get all user roles and convert to new system
-  const users = getAllUsers();
+  const users = await getAllUsers();
   
-  // If no users exist yet, migration is not needed
   if (users.length === 0) {
-    storage.setItem('migration_done_v2', 'true');
+    await setStorageItem('migration_done_v2', 'true');
     return;
   }
   
-  // Check existing roles and convert
-  const userKeys = Object.keys(storage).filter(key => key.startsWith(USER_ROLE_PREFIX));
+  // Migrate legacy roles
+  const updatedUsers = [...users];
+  let hasChanges = false;
   
-  for (const key of userKeys) {
-    const userId = parseInt(key.replace(USER_ROLE_PREFIX, ''));
-    if (!isNaN(userId)) {
-      const role = storage.getItem(key);
-      const user = users.find(u => u.id === userId);
-      
-      if (user) {
-        // Migrate: old 'user' becomes 'has_access', 'admin' stays as is
-        if (role === 'user' && user.status === 'no_access') {
-          user.status = 'has_access';
-        } else if (role === 'admin') {
-          user.status = 'has_access';
-        }
+  for (const user of updatedUsers) {
+    const legacyRole = await getStorageItem(`${USER_ROLE_PREFIX}${user.id}`);
+    if (legacyRole) {
+      if (legacyRole === 'user' && user.status === 'no_access') {
+        user.status = 'has_access';
+        hasChanges = true;
+      } else if (legacyRole === 'admin') {
+        user.status = 'has_access';
+        hasChanges = true;
       }
     }
   }
   
-  saveAllUsers(users);
-  storage.setItem('migration_done_v2', 'true');
+  if (hasChanges) {
+    await saveAllUsers(updatedUsers);
+  }
+  
+  await setStorageItem('migration_done_v2', 'true');
 };
-

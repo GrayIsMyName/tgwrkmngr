@@ -11,6 +11,8 @@ interface TableViewProps {
   onBecomeAdmin: () => void;
   onUserManagement?: () => void;
   pendingRequestsCount?: number;
+  onLogoutAdmin?: () => void;
+  onLogoutUser?: () => void;
 }
 
 export default function TableView({
@@ -23,16 +25,31 @@ export default function TableView({
   onBecomeAdmin,
   onUserManagement,
   pendingRequestsCount = 0,
+  onLogoutAdmin,
+  onLogoutUser,
 }: TableViewProps) {
   return (
     <div className="table-view">
       <div className="header">
         <h1>Управление данными</h1>
-        {!isAdmin && (
-          <button className="btn btn-admin" onClick={onBecomeAdmin}>
-            Стать администратором
-          </button>
-        )}
+        <div className="header-actions">
+          {isAdmin ? (
+            <button className="btn btn-logout" onClick={onLogoutAdmin}>
+              Выйти из админки
+            </button>
+          ) : (
+            <>
+              {onLogoutUser && (
+                <button className="btn btn-logout" onClick={onLogoutUser}>
+                  Выйти
+                </button>
+              )}
+              <button className="btn btn-admin" onClick={onBecomeAdmin}>
+                Стать администратором
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="controls">
