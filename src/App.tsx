@@ -126,6 +126,20 @@ function App() {
     return () => clearInterval(interval);
   }, [isLoading, hasAccess, rows]);
 
+  // Poll for user list and pending requests changes every 3 seconds (for admin)
+  useEffect(() => {
+    if (isLoading || userRole !== 'admin') return;
+
+    const interval = setInterval(async () => {
+      const users = await getUsersWithRoles();
+      const pending = await getPendingRequests();
+      setAllUsers(users);
+      setPendingRequestsCount(pending.length);
+    }, 3000); // Check every 3 seconds
+    
+    return () => clearInterval(interval);
+  }, [isLoading, userRole]);
+
   const handleRequestAccess = () => {
     setShowRequestDialog(true);
   };
