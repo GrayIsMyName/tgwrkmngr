@@ -18,12 +18,6 @@
   color: var(--tg-theme-text-color, #000);
 }
 
-.controls {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
 
 .btn {
   padding: 12px 24px;
@@ -122,12 +116,6 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
   th, td {
     padding: 8px 4px;
     font-size: 12px;

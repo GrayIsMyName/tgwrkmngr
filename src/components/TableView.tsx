@@ -32,6 +32,9 @@ export default function TableView({
   return (
     <div className="table-view">
       <div className="header">
+        <button className="btn btn-primary" onClick={onAdd}>
+          + Добавить
+        </button>
         <DropdownMenu
           isAdmin={isAdmin}
           onLogoutAdmin={onLogoutAdmin}
@@ -41,12 +44,6 @@ export default function TableView({
           onClearAll={onClearAll}
           pendingRequestsCount={pendingRequestsCount}
         />
-      </div>
-
-      <div className="controls">
-        <button className="btn btn-primary" onClick={onAdd}>
-          + Добавить
-        </button>
       </div>
 
       {rows.length === 0 ? (
