@@ -7,6 +7,7 @@ interface DropdownMenuProps {
   onLogoutUser?: () => void;
   onBecomeAdmin?: () => void;
   onUserManagement?: () => void;
+  onAccessRequests?: () => void;
   onClearAll?: () => void;
   pendingRequestsCount?: number;
 }
@@ -17,6 +18,7 @@ export default function DropdownMenu({
   onLogoutUser,
   onBecomeAdmin,
   onUserManagement,
+  onAccessRequests,
   onClearAll,
   pendingRequestsCount = 0,
 }: DropdownMenuProps) {
@@ -77,12 +79,18 @@ export default function DropdownMenu({
               </button>
               <button
                 className="dropdown-item"
-                onClick={() => handleItemClick(onUserManagement)}
+                onClick={() => handleItemClick(onAccessRequests)}
               >
-                Управление пользователями
+                Запросы доступа
                 {pendingRequestsCount > 0 && (
                   <span className="dropdown-badge">{pendingRequestsCount}</span>
                 )}
+              </button>
+              <button
+                className="dropdown-item"
+                onClick={() => handleItemClick(onUserManagement)}
+              >
+                Управление пользователями
               </button>
               <button
                 className="dropdown-item dropdown-item-danger"

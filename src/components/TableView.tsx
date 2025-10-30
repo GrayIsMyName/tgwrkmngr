@@ -11,6 +11,7 @@ interface TableViewProps {
   onClearAll: () => void;
   onBecomeAdmin: () => void;
   onUserManagement?: () => void;
+  onAccessRequests?: () => void;
   pendingRequestsCount?: number;
   onLogoutAdmin?: () => void;
   onLogoutUser?: () => void;
@@ -25,6 +26,7 @@ export default function TableView({
   onClearAll,
   onBecomeAdmin,
   onUserManagement,
+  onAccessRequests,
   pendingRequestsCount = 0,
   onLogoutAdmin,
   onLogoutUser,
@@ -41,6 +43,7 @@ export default function TableView({
           onLogoutUser={onLogoutUser}
           onBecomeAdmin={onBecomeAdmin}
           onUserManagement={onUserManagement}
+          onAccessRequests={onAccessRequests}
           onClearAll={onClearAll}
           pendingRequestsCount={pendingRequestsCount}
         />

@@ -22,10 +22,11 @@ import AddEditForm from './components/AddEditForm';
 import AccessDeniedView from './components/AccessDeniedView';
 import RequestAccessDialog from './components/RequestAccessDialog';
 import UserManagementPanel from './components/UserManagementPanel';
+import AccessRequestsPanel from './components/AccessRequestsPanel';
 import AdminPasswordDialog from './components/AdminPasswordDialog';
 import ConfirmDialog from './components/ConfirmDialog';
 
-type View = 'table' | 'add' | 'edit' | 'user-management';
+type View = 'table' | 'add' | 'edit' | 'user-management' | 'access-requests';
 
 function App() {
   const [rows, setRows] = useState<TableRow[]>([]);
@@ -213,7 +214,15 @@ function App() {
     setView('user-management');
   };
 
+  const handleAccessRequests = () => {
+    setView('access-requests');
+  };
+
   const handleBackFromUserManagement = () => {
+    setView('table');
+  };
+
+  const handleBackFromAccessRequests = () => {
     setView('table');
   };
 
@@ -337,6 +346,18 @@ function App() {
     );
   }
 
+  // Show access requests panel for admin
+  if (view === 'access-requests') {
+    const pendingRequests = allUsers.filter(u => u.status === 'no_access' && u.requestedAt);
+    return (
+      <AccessRequestsPanel
+        pendingRequests={pendingRequests}
+        onGrantAccess={handleGrantAccess}
+        onBack={handleBackFromAccessRequests}
+      />
+    );
+  }
+
   // Show user management panel for admin
   if (view === 'user-management') {
     return (
@@ -376,6 +397,7 @@ function App() {
         onClearAll={handleClearAll}
         onBecomeAdmin={handleBecomeAdmin}
         onUserManagement={handleUserManagement}
+        onAccessRequests={handleAccessRequests}
         pendingRequestsCount={pendingRequestsCount}
         onLogoutAdmin={handleLogoutAdmin}
         onLogoutUser={handleLogoutUser}

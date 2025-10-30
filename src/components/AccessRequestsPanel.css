@@ -1,0 +1,138 @@
+.access-requests-panel {
+  padding: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.access-requests-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--tg-theme-button-color, #3390ec);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-back:hover {
+  background-color: var(--tg-theme-secondary-bg-color, #f5f5f5);
+}
+
+.access-requests-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000);
+  flex: 1;
+}
+
+.badge-count {
+  background-color: #ef4444;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--tg-theme-hint-color, #999);
+}
+
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.request-card {
+  background-color: var(--tg-theme-bg-color, #fff);
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.request-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--tg-theme-text-color, #000);
+  margin-bottom: 4px;
+}
+
+.request-details {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color, #666);
+}
+
+.request-reason {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--tg-theme-text-color, #666);
+  padding: 8px;
+  background-color: var(--tg-theme-secondary-bg-color, #f9f9f9);
+  border-radius: 4px;
+}
+
+.request-time {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--tg-theme-hint-color, #999);
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: var(--tg-theme-button-color, #3390ec);
+  color: var(--tg-theme-button-text-color, #fff);
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .request-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .request-actions {
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
