@@ -21,9 +21,11 @@ export default function DropdownMenu({
   pendingRequestsCount = 0,
 }: DropdownMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu when clicking outside
+  // Calculate menu position and close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -31,7 +33,14 @@ export default function DropdownMenu({
       }
     };
 
-    if (isOpen) {
+    if (isOpen && triggerRef.current) {
+      // Calculate position for fixed positioning
+      const rect = triggerRef.current.getBoundingClientRect();
+      setMenuStyle({
+        top: `${rect.bottom + 4}px`,
+        right: `${window.innerWidth - rect.right}px`,
+      });
+      
       document.addEventListener('mousedown', handleClickOutside);
     }
 
@@ -48,6 +57,7 @@ export default function DropdownMenu({
   return (
     <div className="dropdown-menu-container" ref={menuRef}>
       <button
+        ref={triggerRef}
         className="dropdown-trigger"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Меню действий"
@@ -56,7 +66,7 @@ export default function DropdownMenu({
       </button>
 
       {isOpen && (
-        <div className="dropdown-menu">
+        <div className="dropdown-menu" style={menuStyle}>
           {isAdmin ? (
             <>
               <button

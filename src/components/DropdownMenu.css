@@ -2,6 +2,8 @@
   position: relative;
   display: inline-block;
   margin-left: auto;
+  overflow: visible;
+  z-index: 100;
 }
 
 .dropdown-trigger {
@@ -30,10 +32,7 @@
 }
 
 .dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: auto;
-  right: 0;
+  position: fixed;
   margin-top: 4px;
   background: var(--tg-theme-bg-color, #fff);
   border: 1px solid var(--tg-theme-hint-color, #d0d0d0);
@@ -41,7 +40,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   min-width: 220px;
   max-width: calc(100vw - 16px);
-  z-index: 1000;
+  z-index: 10000;
   animation: dropdownSlideIn 0.2s ease-out;
   overflow: hidden;
 }
