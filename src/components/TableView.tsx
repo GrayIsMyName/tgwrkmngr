@@ -32,7 +32,6 @@ export default function TableView({
   return (
     <div className="table-view">
       <div className="header">
-        <h1>Управление данными</h1>
         <DropdownMenu
           isAdmin={isAdmin}
           onLogoutAdmin={onLogoutAdmin}
